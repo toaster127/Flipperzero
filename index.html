@@ -29,7 +29,7 @@
         <div class="card">
             <h2>Bluetooth Peripheral Control</h2>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">Scan for nearby Bluetooth-enabled devices to pair and send control signals.</p>
-            <button onclick="scanBluetoothDevices()" style="margin-top: 0.75rem;">Scan Bluetooth Devices</button>
+            <button onclick="runAdvancedBluetoothScan()" style="margin-top: 0.75rem;">Run Deep Bluetooth Scan</button>
             <div id="btStatus" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">Status: Disconnected</div>
         </div>
 
@@ -41,6 +41,7 @@
         </div>
     </div>
 
+    <script src="bt-scanner.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
