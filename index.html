@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Projector Control Panel</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: #334155;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--accent);
+        }
+
+        button {
+            background-color: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .device-info h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+
+        .device-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.online {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .badge.offline {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .console-log {
+            background-color: #000;
+            color: #4ade80;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            height: 150px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Projector Network Hub</h1>
+            <button onclick="startScan()">Scan Subnet</button>
+        </header>
+
+        <div class="card">
+            <h2>Discovered Devices</h2>
+            <div class="device-list" id="deviceList">
+                <div class="device-item">
+                    <div class="device-info">
+                        <h3>No devices scanned yet</h3>
+                        <p>Click "Scan Subnet" to search local IP range.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Activity Log</h2>
+            <div class="console-log" id="consoleLog">
+                [System] Interface initialized. Ready to scan...<br>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const consoleBox = document.getElementById('consoleLog');
+            consoleBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${message}<br>`;
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function startScan() {
+            log("Initiating network sweep on port 4352...");
+            const listEl = document.getElementById('deviceList');
+            listEl.innerHTML = '<div class="device-item"><div class="device-info"><h3>Scanning...</h3><p>Please wait...</p></div></div>';
+
+            setTimeout(() => {
+                listEl.innerHTML = `
+                    <div class="device-item">
+                        <div class="device-info">
+                            <h3>Projector-Hall-A <span class="badge online">Online</span></h3>
+                            <p>IP: 192.168.1.45 | Protocol: PJLink</p>
+                        </div>
+                        <div class="actions">
+                            <button onclick="powerOff('192.168.1.45')">Power Off</button>
+                        </div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-info">
+                            <h3>Projector-Classroom-102 <span class="badge online">Online</span></h3>
+                            <p>IP: 192.168.1.88 | Protocol: PJLink</p>
+                        </div>
+                        <div class="actions">
+                            <button onclick="powerOff('192.168.1.88')">Power Off</button>
+                        </div>
+                    </div>
+                `;
+                log("Scan complete. 2 active projectors discovered.");
+            }, 1200);
+        }
+
+        function powerOff(ip) {
+            log(`Sending power-off command (%1POWR 0) to target: ${ip}`);
+            setTimeout(() => {
+                log(`[SUCCESS] Response received from ${ip}: OK`);
+                alert(`Projector at ${ip} has been powered off.`);
+            }, 600);
+        }
+    </script>
+
+</body>
+</html>
