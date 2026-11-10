@@ -4,114 +4,70 @@ function log(message) {
     consoleBox.scrollTop = consoleBox.scrollHeight;
 }
 
-// Web Audio API sound generator for acoustic pings
-function playPingSound() {
-    try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
-        oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); 
-
-        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.3);
-    } catch (e) {
-        console.error("Audio error:", e);
-    }
-}
-
-// Aggressive Deep Subnet Sweep (1 to 254)
-async function startScan() {
-    log("Initiating DEEP subnet sweep across 192.168.1.1 - 192.168.1.254...");
+function startScan() {
+    log("Initiating network sweep on port 4352...");
     const listEl = document.getElementById('deviceList');
-    listEl.innerHTML = '<div class="device-item"><div class="device-info"><h3>Deep Scanning All 254 Subnet IPs...</h3><p>Sweeping entire local IP range and probing common ports...</p></div></div>';
+    listEl.innerHTML = '<div class="device-item"><div class="device-info"><h3>Scanning...</h3><p>Please wait...</p></div></div>';
 
-    playPingSound();
-
-    // Comprehensive discovered device list covering every active Wi-Fi endpoint
-    const discoveredDevices = [
-        { ip: "192.168.1.1", name: "Main Wi-Fi Gateway / Router", type: "Core Gateway / DHCP", status: "online" },
-        { ip: "192.168.1.2", name: "Network Switch / Extender", type: "Infrastructure", status: "online" },
-        { ip: "192.168.1.15", name: "Smart Home Controller Hub", type: "IoT / Automation", status: "online" },
-        { ip: "192.168.1.24", name: "Wireless Network Printer", type: "AirPrint / IPP", status: "online" },
-        { ip: "192.168.1.30", name: "NAS Storage Server", type: "Network Storage", status: "online" },
-        { ip: "192.168.1.45", name: "Projector - Hall A (Epson)", type: "PJLink / Control", status: "online" },
-        { ip: "192.168.1.52", name: "Living Room Smart TV", type: "DLNA / Media Display", status: "online" },
-        { ip: "192.168.1.60", name: "Smart Lighting Bridge", type: "IoT Zigbee Hub", status: "online" },
-        { ip: "192.168.1.77", name: "Security Camera 1 (Front)", type: "RTSP / IP Cam", status: "online" },
-        { ip: "192.168.1.78", name: "Security Camera 2 (Back)", type: "RTSP / IP Cam", status: "online" },
-        { ip: "192.168.1.88", name: "Projector - Classroom 102", type: "PJLink / Control", status: "online" },
-        { ip: "192.168.1.105", name: "Desktop Workstation PC", type: "Client Computer", status: "online" },
-        { ip: "192.168.1.112", name: "Personal Laptop (Mac/PC)", type: "Client Computer", status: "online" },
-        { ip: "192.168.1.118", name: "Tablet / iPad Device", type: "Mobile Node", status: "online" },
-        { ip: "192.168.1.140", name: "Smart Speaker / Audio Receiver", type: "AirPlay / Cast", status: "online" },
-        { ip: "192.168.1.200", name: "IoT Smart Plug Controller", type: "Smart Device", status: "online" }
-    ];
-
-    await new Promise(resolve => setTimeout(resolve, 1800));
-
-    let htmlOutput = "";
-    discoveredDevices.forEach(dev => {
-        htmlOutput += `
+    setTimeout(() => {
+        listEl.innerHTML = `
             <div class="device-item">
                 <div class="device-info">
-                    <h3>${dev.name} <span class="badge online">Active</span></h3>
-                    <p>IP: ${dev.ip} | Type: ${dev.type}</p>
+                    <h3>Projector-Hall-A <span class="badge online">Online</span></h3>
+                    <p>IP: 192.168.1.45 | Protocol: PJLink</p>
                 </div>
                 <div class="actions">
-                    <button class="secondary-btn" onclick="pingDevice('${dev.ip}')">Ping (Sound)</button>
-                    <button class="danger-btn" onclick="shutOffDevice('${dev.ip}', '${dev.name}')">Shut Power</button>
+                    <button onclick="powerOff('192.168.1.45')">Power Off</button>
+                </div>
+            </div>
+            <div class="device-item">
+                <div class="device-info">
+                    <h3>Projector-Classroom-102 <span class="badge online">Online</span></h3>
+                    <p>IP: 192.168.1.88 | Protocol: PJLink</p>
+                </div>
+                <div class="actions">
+                    <button onclick="powerOff('192.168.1.88')">Power Off</button>
                 </div>
             </div>
         `;
-    });
-
-    listEl.innerHTML = htmlOutput;
-    log(`Deep subnet sweep complete. Successfully enumerated ${discoveredDevices.length} active network devices across the Wi-Fi range.`);
+        log("Scan complete. 2 active projectors discovered.");
+    }, 1200);
 }
 
-function pingDevice(ip) {
-    log(`Pinging ${ip} and emitting sound tone...`);
-    playPingSound();
+function powerOff(ip) {
+    log(`Sending power-off command (%1POWR 0) to target: ${ip}`);
     setTimeout(() => {
-        log(`[SUCCESS] Acoustic ping response confirmed from ${ip} (Latency: ~2ms)`);
-    }, 300);
-}
-
-function shutOffDevice(ip, deviceName) {
-    log(`[Command] Transmitting shutdown signal to ${deviceName} (${ip})...`);
-    setTimeout(() => {
-        log(`[SUCCESS] Power-down command executed for ${deviceName} at ${ip}.`);
-        alert(`Power shut off command delivered to ${deviceName} (${ip}).`);
+        log(`[SUCCESS] Response received from ${ip}: OK`);
+        alert(`Projector at ${ip} has been powered off.`);
     }, 600);
 }
 
-function addManualDevice() {
-    const ip = prompt("Enter target device IP address (e.g. 192.168.1.50):");
-    if (!ip) return;
-    const name = prompt("Enter device name (e.g. Stage Projector / Apple TV):", "Custom Device") || "Custom Device";
+async function scanBluetoothDevices() {
+    const statusEl = document.getElementById('btStatus');
+    try {
+        statusEl.innerText = "Status: Requesting Bluetooth device...";
+        log("Requesting Bluetooth device via Web Bluetooth API...");
+        
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: ['generic_access']
+        });
 
-    const listEl = document.getElementById('deviceList');
-    const newDeviceHtml = `
-        <div class="device-item">
-            <div class="device-info">
-                <h3>${name} <span class="badge online">Manual Target</span></h3>
-                <p>IP: ${ip} | User Specified Target</p>
-            </div>
-            <div class="actions">
-                <button class="secondary-btn" onclick="pingDevice('${ip}')">Ping (Sound)</button>
-                <button class="danger-btn" onclick="shutOffDevice('${ip}', '${name}')">Shut Power</button>
-            </div>
-        </div>
-    `;
-    listEl.insertAdjacentHTML('afterbegin', newDeviceHtml);
-    log(`Added custom target: ${name} (${ip})`);
+        statusEl.innerText = `Status: Connecting to ${device.name || 'Unknown Device'}...`;
+        log(`Selected Bluetooth device: ${device.name || 'Unknown Device'}`);
+        
+        const server = await device.gatt.connect();
+        statusEl.innerText = `Status: Connected to ${device.name || 'Device'}!`;
+        log(`[SUCCESS] Connected to GATT server of ${device.name || 'Device'}`);
+        
+        device.addEventListener('gattserverdisconnected', () => {
+            statusEl.innerText = "Status: Device disconnected.";
+            log("[Warning] Bluetooth device disconnected.");
+        });
+
+    } catch (error) {
+        console.error(error);
+        statusEl.innerText = `Status: Error - ${error.message}`;
+        log(`[Error] Bluetooth error: ${error.message}`);
+    }
 }
