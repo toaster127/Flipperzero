@@ -1,24 +1,12 @@
 /**
- * scanner.js - Extended Bluetooth & Network Discovery Diagnostics
- * Supplements app.js to catch broad or hidden BLE advertisements
+ * scanner.js - Fixed Web Bluetooth Scanner Utility
+ * Handles browser security filters and prevents unhandled promise exceptions.
  */
-
-// Extended service UUIDs commonly associated with media peripherals, smart displays, and audio/video receivers
-const COMMON_AV_SERVICE_UUIDS = [
-    'generic_access',
-    'generic_attribute',
-    0x1800, // Generic Access
-    0x1801, // Generic Attribute
-    0x110a, // Audio Source
-    0x110b, // Audio Sink
-    0x110e, // A/V Remote Control
-    0x110f  // A/V Remote Control Target
-];
 
 async function scanExtendedBluetoothDevices() {
     const statusEl = document.getElementById('btStatus');
     
-    // Check if Web Bluetooth is supported by the current browser/environment
+    // Check if Web Bluetooth is supported
     if (!navigator.bluetooth) {
         if (typeof log === 'function') {
             log("[Error] Web Bluetooth API is not supported in this browser environment.");
@@ -28,53 +16,76 @@ async function scanExtendedBluetoothDevices() {
     }
 
     try {
-        statusEl.innerText = "Status: Running deep BLE scan...";
+        statusEl.innerText = "Status: Opening Bluetooth selector...";
         if (typeof log === 'function') {
-            log("Initiating deep Bluetooth scan with extended filters...");
+            log("Triggering browser Bluetooth device picker...");
         }
 
-        // Request device using multiple fallback configurations to catch unlisted signals
+        // NOTE: Browsers require filters or explicit configuration to avoid throwing errors.
+        // We use a broader set of optional services and filter parameters.
+        const options = {
+            filters: [
+                { services: ['generic_access'] },
+                { services: ['generic_attribute'] }
+            ],
+            optionalServices: [
+                'battery_service', 
+                'device_information',
+                0x110a, // Audio Source
+                0x110b  // Audio Sink
+            ]
+        };
+
+        // Fallback: If no devices match specific filters, prompt with acceptAllDevices if supported, 
+        // otherwise catch the constraint error cleanly.
         let device;
         try {
-            // Attempt 1: Broad scan looking for any advertising device
+            device = await navigator.bluetooth.requestDevice(options);
+        } catch (filterErr) {
+            if (typeof log === 'function') {
+                log("[Notice] Filtered scan yielded nothing or was dismissed. Trying broader match...");
+            }
+            // Fallback to allow pairing if user environment permits
             device = await navigator.bluetooth.requestDevice({
                 acceptAllDevices: true,
-                optionalServices: COMMON_AV_SERVICE_UUIDS
+                optionalServices: ['generic_access', 'generic_attribute']
             });
-        } catch (innerErr) {
-            if (typeof log === 'function') {
-                log("[Notice] Broad scan prompt closed or rejected. Trying targeted fallback...");
-            }
-            throw innerErr;
         }
 
         if (device) {
-            const deviceName = device.name || "Unnamed/Hidden Peripheral";
+            const deviceName = device.name || "Unnamed Device";
             statusEl.innerText = `Status: Selected -> ${deviceName}`;
             if (typeof log === 'function') {
-                log(`[SUCCESS] Target acquired: ${deviceName} [ID: ${device.id}]`);
+                log(`[SUCCESS] Connected to target: ${deviceName}`);
             }
 
-            // Attempt connection to the device's GATT server
+            // Connect to GATT server
             const server = await device.gatt.connect();
             if (typeof log === 'function') {
-                log(`[SUCCESS] Connected to GATT server for ${deviceName}`);
+                log(`[SUCCESS] GATT server connection established.`);
             }
 
-            // Listen for disconnection events
             device.addEventListener('gattserverdisconnected', () => {
                 statusEl.innerText = "Status: Device disconnected.";
                 if (typeof log === 'function') {
-                    log(`[Warning] Connection lost with ${deviceName}`);
+                    log(`[Warning] Disconnected from ${deviceName}`);
                 }
             });
         }
 
     } catch (error) {
-        console.error("Bluetooth scan error:", error);
-        statusEl.innerText = `Status: Scan ended (${error.name || 'Cancelled'})`;
-        if (typeof log === 'function') {
-            log(`[Info] Scan status: ${error.message}`);
+        // This handles when the user cancels the Bluetooth popup window or if an error occurs
+        console.error("Bluetooth error:", error);
+        if (error.name === 'NotFoundError' || error.code === 8) {
+            statusEl.innerText = "Status: Scan cancelled by user.";
+            if (typeof log === 'function') {
+                log("[Info] Bluetooth selection dialog was closed or no device was selected.");
+            }
+        } else {
+            statusEl.innerText = `Status: Error - ${error.message}`;
+            if (typeof log === 'function') {
+                log(`[Error] Bluetooth failure: ${error.message}`);
+            }
         }
     }
 }
