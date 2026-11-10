@@ -45,7 +45,7 @@
             <h2>Bluetooth Peripheral Control</h2>
             <p class="section-desc">Scan for nearby Bluetooth-enabled devices to pair and send control signals.</p>
             <div class="bt-action-group">
-                <button class="secondary-btn" onclick="runChromeBluetoothScan()">Run BLE Scan</button>
+                <button class="secondary-btn" onclick="handleIpadBluetoothScan()">Run Bluetooth Scan</button>
                 <div id="btStatus" class="status-pill">Status: Disconnected</div>
             </div>
         </div>
@@ -61,6 +61,7 @@
 
     <script src="bt-scanner.js"></script>
     <script src="chrome-scanner.js"></script>
+    <script src="ipad-bridge.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
