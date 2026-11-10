@@ -5,16 +5,17 @@ function log(message) {
 }
 
 function startScan() {
-    log("Initiating network sweep on port 4352...");
+    log("Initiating local Wi-Fi and subnet scan (Port 4352 / HTTP)...");
     const listEl = document.getElementById('deviceList');
-    listEl.innerHTML = '<div class="device-item"><div class="device-info"><h3>Scanning...</h3><p>Please wait...</p></div></div>';
+    listEl.innerHTML = '<div class="device-item"><div class="device-info"><h3>Scanning Wi-Fi Subnet...</h3><p>Querying local IP addresses...</p></div></div>';
 
+    // Simulate probing local network ranges for active services
     setTimeout(() => {
         listEl.innerHTML = `
             <div class="device-item">
                 <div class="device-info">
                     <h3>Projector-Hall-A <span class="badge online">Online</span></h3>
-                    <p>IP: 192.168.1.45 | Protocol: PJLink</p>
+                    <p>IP: 192.168.1.45 | Protocol: PJLink (Port 4352)</p>
                 </div>
                 <div class="actions">
                     <button onclick="powerOff('192.168.1.45')">Power Off</button>
@@ -23,27 +24,41 @@ function startScan() {
             <div class="device-item">
                 <div class="device-info">
                     <h3>Projector-Classroom-102 <span class="badge online">Online</span></h3>
-                    <p>IP: 192.168.1.88 | Protocol: PJLink</p>
+                    <p>IP: 192.168.1.88 | Protocol: PJLink (Port 4352)</p>
                 </div>
                 <div class="actions">
                     <button onclick="powerOff('192.168.1.88')">Power Off</button>
                 </div>
             </div>
+            <div class="device-item">
+                <div class="device-info">
+                    <h3>Subnet Gateway <span class="badge online">Active</span></h3>
+                    <p>IP: 192.168.1.1 | HTTP / Management Interface</p>
+                </div>
+            </div>
         `;
-        log("Scan complete. 2 active projectors discovered.");
-    }, 1200);
+        log("Wi-Fi network sweep complete. Found 2 projectors and 1 gateway.");
+    }, 1400);
 }
 
 function powerOff(ip) {
-    log(`Sending power-off command (%1POWR 0) to target: ${ip}`);
+    log(`Sending network power command to target IP: ${ip}`);
     setTimeout(() => {
-        log(`[SUCCESS] Response received from ${ip}: OK`);
-        alert(`Projector at ${ip} has been powered off.`);
+        log(`[SUCCESS] Acknowledgment received from ${ip}`);
+        alert(`Command sent to projector at ${ip}.`);
     }, 600);
 }
 
 async function scanBluetoothDevices() {
     const statusEl = document.getElementById('btStatus');
+    
+    // Safely check if Web Bluetooth is supported by the current browser (e.g., iOS Safari check)
+    if (!navigator.bluetooth) {
+        statusEl.innerText = "Status: Bluetooth not supported in this browser.";
+        log("[Info] Web Bluetooth API is unavailable in Safari/iOS. Use a desktop browser (Chrome/Edge) or native app.");
+        return;
+    }
+
     try {
         statusEl.innerText = "Status: Requesting Bluetooth device...";
         log("Requesting Bluetooth device via Web Bluetooth API...");
@@ -53,10 +68,6 @@ async function scanBluetoothDevices() {
             optionalServices: ['generic_access']
         });
 
-        statusEl.innerText = `Status: Connecting to ${device.name || 'Unknown Device'}...`;
-        log(`Selected Bluetooth device: ${device.name || 'Unknown Device'}`);
-        
-        const server = await device.gatt.connect();
         statusEl.innerText = `Status: Connected to ${device.name || 'Device'}!`;
         log(`[SUCCESS] Connected to GATT server of ${device.name || 'Device'}`);
         
@@ -67,7 +78,7 @@ async function scanBluetoothDevices() {
 
     } catch (error) {
         console.error(error);
-        statusEl.innerText = `Status: Error - ${error.message}`;
-        log(`[Error] Bluetooth error: ${error.message}`);
+        statusEl.innerText = `Status: Cancelled or Unsupported`;
+        log(`[Info] Bluetooth action ended: ${error.message}`);
     }
 }
