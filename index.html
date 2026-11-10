@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projector Network Hub</title>
+    <title>Universal Network & Device Hub</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,8 +14,8 @@
             <div class="brand">
                 <img src="logo.png" alt="Logo" class="logo">
                 <div>
-                    <h1>Projector Hub</h1>
-                    <span class="subtitle">Network & Device Controller</span>
+                    <h1>Device Hub</h1>
+                    <span class="subtitle">Universal Network & BLE Controller</span>
                 </div>
             </div>
             <div class="header-actions">
@@ -27,23 +27,23 @@
             </div>
         </header>
 
-        <!-- Discovered Devices Card -->
+        <!-- Discovered Network Devices Card -->
         <div class="card">
-            <h2>Discovered Devices</h2>
+            <h2>Discovered Network Devices</h2>
             <div class="device-list" id="deviceList">
                 <div class="device-item empty-state">
                     <div class="device-info">
                         <h3>No devices scanned yet</h3>
-                        <p>Tap "Scan Subnet" to search local IP range for PJLink targets.</p>
+                        <p>Tap "Scan Subnet" to search local IP range for active network nodes.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bluetooth Controller Card -->
+        <!-- Bluetooth Peripheral Control Card -->
         <div class="card">
             <h2>Bluetooth Peripheral Control</h2>
-            <p class="section-desc">Scan for nearby Bluetooth-enabled devices to pair and send control signals.</p>
+            <p class="section-desc">Scan for nearby Bluetooth-enabled peripherals, sensors, and smart gadgets.</p>
             <div class="bt-action-group">
                 <button class="secondary-btn" onclick="handleIpadBluetoothScan()">Run Bluetooth Scan</button>
                 <div id="btStatus" class="status-pill">Status: Disconnected</div>
@@ -54,7 +54,7 @@
         <div class="card">
             <h2>Activity Log</h2>
             <div class="console-log" id="consoleLog">
-                [System] Interface initialized. Ready for network operations...<br>
+                [System] Universal interface initialized. Ready for operations...<br>
             </div>
         </div>
     </div>
